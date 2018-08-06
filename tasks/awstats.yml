@@ -1,0 +1,8 @@
+---
+
+- name: install awstats monitoring
+  package: #os independent
+    name: awstats
+    state: present
+
+

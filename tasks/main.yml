@@ -1,0 +1,6 @@
+---
+
+- include: awstats.yml
+  #when: awstats_enabled 
+  #tags: [awstats]
+
