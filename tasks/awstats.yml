@@ -1,8 +1,50 @@
 ---
 
-- name: install awstats monitoring
+#poogladaj jeszcze
+#https://github.com/AlbanAndrieu/ansible-awstats/blob/master/tasks/awstats.yml
+
+#test updates with
+#/usr/lib/cgi-bin/awstats.pl -config=dobrekuchnie.com -update
+
+
+
+- name: install awstats package
   package: #os independent
     name: awstats
     state: present
+
+#script needed to run perl through cgi on nginx
+#more info about it
+#https://wiki.archlinux.org/index.php/Awstats
+#https://kamisama.me/2013/03/20/install-configure-and-protect-awstats-for-multiple-nginx-vhost-on-debian/
+- name: copy cgi-bin.php file
+  copy:
+    src: files/etc/nginx/cgi-bin.php
+    dest: /etc/nginx/
+    owner: www-data
+    group: www-data
+
+- name: set awstats.pl file owner
+  file:
+    path: /usr/lib/cgi-bin/awstats.pl
+    owner: www-data
+    group: www-data
+
+
+- name: install perl dependencies
+  package:
+    name: libgeo-ipfree-perl
+    state: present
+
+
+#- name: set awstats config file for monitored domain
+#cp /etc/awstats/awstats.conf /etc/awstats/awstats.dobrekuchnie.com.conf
+#LogFile="/var/log/nginx/access.log"
+#SiteDomain="dobrekuchnie.com"
+#HostAliases="localhost 127.0.0.1 dobrekuchnie.com"
+#LoadPlugin="tooltips"
+#LoadPlugin="graphgooglechartapi"
+#LoadPlugin="geoipfree"
+
 
 
