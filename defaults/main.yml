@@ -1,0 +1,4 @@
+monitored_domain: example.com
+skip_hosts: ''
+access_log_name: example.access.log
+

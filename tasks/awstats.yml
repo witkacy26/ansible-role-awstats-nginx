@@ -6,12 +6,19 @@
 #test updates with
 #/usr/lib/cgi-bin/awstats.pl -config=dobrekuchnie.com -update
 
+#tested on: Ubuntu 18.04 (bionic)
 
 
 - name: install awstats package
   package: #os independent
     name: awstats
     state: present
+
+- name: install perl dependencies
+  package:
+    name: libgeo-ipfree-perl
+    state: present
+
 
 #script needed to run perl through cgi on nginx
 #more info about it
@@ -24,27 +31,55 @@
     owner: www-data
     group: www-data
 
-- name: set awstats.pl file owner
+- name: set awstats.pl file owner (for better security)
   file:
     path: /usr/lib/cgi-bin/awstats.pl
     owner: www-data
     group: www-data
 
 
-- name: install perl dependencies
-  package:
-    name: libgeo-ipfree-perl
-    state: present
+
+# configure monitoring
+
+- name: create awstats config file for {{ monitored_domain }} (SkipHosts {{ skip_hosts }}
+  copy:
+    remote_src: yes
+    force: no           #don't copy if already copied
+    src: /etc/awstats/awstats.conf
+    dest: /etc/awstats/awstats.{{ monitored_domain }}.conf
 
 
-#- name: set awstats config file for monitored domain
-#cp /etc/awstats/awstats.conf /etc/awstats/awstats.dobrekuchnie.com.conf
-#LogFile="/var/log/nginx/access.log"
-#SiteDomain="dobrekuchnie.com"
-#HostAliases="localhost 127.0.0.1 dobrekuchnie.com"
-#LoadPlugin="tooltips"
-#LoadPlugin="graphgooglechartapi"
-#LoadPlugin="geoipfree"
 
+- name: configure awstats for awstats.{{ monitored_domain }}.conf, set access.log name ({{ access_log_name }})
+  lineinfile:
+    path: /etc/awstats/awstats.{{ monitored_domain }}.conf
+    regexp: '^LogFile='
+    line: 'LogFile="/var/log/nginx/{{ access_log_name }}"'
+
+
+- name: configure awstats for awstats.{{ monitored_domain }}.conf, set SiteDomain
+  lineinfile:
+    path: /etc/awstats/awstats.{{ monitored_domain }}.conf
+    regexp: '^SiteDomain='
+    line: 'SiteDomain="{{ monitored_domain }}"'
+
+
+- name: configure awstats for awstats.{{ monitored_domain }}.conf, set HostAliases
+  lineinfile:
+    path: /etc/awstats/awstats.{{ monitored_domain }}.conf
+    regexp: '^HostAliases='
+    line: 'HostAliases="localhost 127.0.0.1 {{ monitored_domain }}"'
+
+
+- name: configure awstats for awstats.{{ monitored_domain }}.conf, uncomment plugin "tooltips" "graphgooglechartapi" "geoipfree"
+  lineinfile:
+    path: /etc/awstats/awstats.{{ monitored_domain }}.conf
+    regexp: '^LoadPlugin="{{item}}"'
+    insertafter: '^#LoadPlugin="{{item}}"'
+    line: 'LoadPlugin="{{item}}"'
+  with_items:
+    - tooltips
+    - graphgooglechartapi
+    - geoipfree
 
 
