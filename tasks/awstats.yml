@@ -39,6 +39,18 @@
 
 
 
+- name: configure nginx with awstats.conf
+  copy:
+    src: etc/nginx/sites-available/awstats.conf
+    dest: /etc/nginx/sites-available
+
+- name: nginx - make this configuration enabled 
+  file:
+    src: ../sites-available/awstats.conf
+    dest: /etc/nginx/sites-enabled/awstats.conf
+    state: link
+
+
 # configure monitoring
 
 - name: create awstats config file for {{ monitored_domain }} (SkipHosts {{ skip_hosts }}
@@ -50,6 +62,13 @@
 
 
 
+- name: configure awstats for awstats.{{ monitored_domain }}.conf, set SkipHosts ({{ access_log_name }})
+  lineinfile:
+    path: /etc/awstats/awstats.{{ monitored_domain }}.conf
+    regexp: '^SkipHosts='
+    line: 'SkipHosts="{{ skip_hosts }}"'
+
+
 - name: configure awstats for awstats.{{ monitored_domain }}.conf, set access.log name ({{ access_log_name }})
   lineinfile:
     path: /etc/awstats/awstats.{{ monitored_domain }}.conf
@@ -57,14 +76,21 @@
     line: 'LogFile="/var/log/nginx/{{ access_log_name }}"'
 
 
-- name: configure awstats for awstats.{{ monitored_domain }}.conf, set SiteDomain
+- name: configure awstats for awstats.{{ monitored_domain }}.conf, set LogFormat ({{ access_log_name }})
+  lineinfile:
+    path: /etc/awstats/awstats.{{ monitored_domain }}.conf
+    regexp: '^LogFormat='
+    line: 'LogFormat=1'
+
+
+- name: configure awstats for awstats.{{ monitored_domain }}.conf, set SiteDomain ({{ access_log_name }})
   lineinfile:
     path: /etc/awstats/awstats.{{ monitored_domain }}.conf
     regexp: '^SiteDomain='
     line: 'SiteDomain="{{ monitored_domain }}"'
 
 
-- name: configure awstats for awstats.{{ monitored_domain }}.conf, set HostAliases
+- name: configure awstats for awstats.{{ monitored_domain }}.conf, set HostAliases ({{ access_log_name }})
   lineinfile:
     path: /etc/awstats/awstats.{{ monitored_domain }}.conf
     regexp: '^HostAliases='
